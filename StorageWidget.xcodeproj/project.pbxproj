@@ -13,6 +13,7 @@
 		A10004 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20004; };
 		A10010 /* StorageWidgetExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20010; };
 		A10011 /* DiskSpaceProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20003; };
+		A10015 /* StorageIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20015; };
 		A10012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20012; };
 		A10013 /* StorageWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = A30002; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -51,6 +52,7 @@
 		A20012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20013 /* StorageWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = StorageWidgetExtension.entitlements; sourceTree = "<group>"; };
 		A20014 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20015 /* StorageIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageIntents.swift; sourceTree = "<group>"; };
 		A30001 /* StorageWidget.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StorageWidget.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30002 /* StorageWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = StorageWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -98,6 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				A20010,
+				A20015,
 				A20012,
 				A20013,
 				A20014,
@@ -226,6 +229,7 @@
 			files = (
 				A10010,
 				A10011,
+				A10015,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import AppIntents
 
 // MARK: - Timeline Provider
 
@@ -9,12 +10,12 @@ struct StorageTimelineProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (StorageEntry) -> Void) {
-        let volumes = DiskSpaceProvider.getVolumes()
+        let volumes = DiskSpaceProvider.getVisibleVolumes()
         completion(StorageEntry(date: Date(), volumes: volumes))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<StorageEntry>) -> Void) {
-        let volumes = DiskSpaceProvider.getVolumes()
+        let volumes = DiskSpaceProvider.getVisibleVolumes()
         let entry = StorageEntry(date: Date(), volumes: volumes)
         let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: Date())!
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
@@ -34,44 +35,74 @@ struct StorageEntry: TimelineEntry {
     ]
 }
 
+// MARK: - Refresh Button
+
+struct RefreshButton: View {
+    var compact: Bool = false
+
+    var body: some View {
+        Button(intent: RefreshStorageIntent()) {
+            Image(systemName: "arrow.clockwise")
+                .font(.system(size: compact ? 10 : 11, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // MARK: - Small Widget View
 
 struct SmallWidgetView: View {
     let entry: StorageEntry
 
     var body: some View {
-        if let volume = entry.volumes.first {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 6) {
-                    Image(systemName: volume.icon)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(volume.usageGradient)
-                    Text(volume.name)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                    Spacer()
-                }
-
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
                 Spacer()
-
-                Text(volume.freeFormatted)
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-
-                Text("свободно из \(volume.totalFormatted)")
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
-
-                StorageBar(fraction: volume.usedFraction, gradient: volume.usageGradient)
-                    .frame(height: 7)
-                    .padding(.top, 2)
+                RefreshButton(compact: true)
             }
-            .padding(12)
-        } else {
-            Text("Нет дисков")
-                .foregroundStyle(.secondary)
+            .padding(.bottom, 4)
+
+            if entry.volumes.isEmpty {
+                Spacer()
+                Text("Нет дисков")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
+                Spacer()
+            } else {
+                ForEach(Array(entry.volumes.enumerated()), id: \.element.id) { index, volume in
+                    SmallVolumeRow(volume: volume)
+                    if index < entry.volumes.count - 1 {
+                        Spacer(minLength: 4)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+        .padding(12)
+    }
+}
+
+struct SmallVolumeRow: View {
+    let volume: VolumeInfo
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Image(systemName: volume.icon)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(volume.usageGradient)
+                Text(volume.freeFormatted)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .contentTransition(.numericText())
+                Spacer()
+                Text("\(Int(volume.usedFraction * 100))%")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundStyle(volume.usageColor)
+            }
+            StorageBar(fraction: volume.usedFraction, gradient: volume.usageGradient)
+                .frame(height: 5)
         }
     }
 }
@@ -82,8 +113,6 @@ struct MediumWidgetView: View {
     let entry: StorageEntry
 
     var body: some View {
-        let displayVolumes = Array(entry.volumes.prefix(3))
-
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 6) {
                 Image(systemName: "opticaldiscdrive.fill")
@@ -92,32 +121,28 @@ struct MediumWidgetView: View {
                 Text("Хранилище")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
+                RefreshButton()
                 Text(entry.date, style: .time)
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
             }
             .padding(.bottom, 10)
 
-            if displayVolumes.isEmpty {
+            if entry.volumes.isEmpty {
                 Spacer()
                 Text("Диски не найдены")
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
                 Spacer()
             } else {
-                ForEach(Array(displayVolumes.enumerated()), id: \.element.id) { index, volume in
+                ForEach(Array(entry.volumes.enumerated()), id: \.element.id) { index, volume in
                     MediumVolumeRow(volume: volume)
-                    if index < displayVolumes.count - 1 {
+                    if index < entry.volumes.count - 1 {
                         Divider()
                             .padding(.vertical, 4)
                     }
                 }
-                if entry.volumes.count > 3 {
-                    Text("+ ещё \(entry.volumes.count - 3)")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.tertiary)
-                        .padding(.top, 4)
-                }
+                Spacer(minLength: 0)
             }
         }
         .padding(12)
@@ -143,6 +168,7 @@ struct MediumVolumeRow: View {
                     Text("\(volume.freeFormatted) свободно")
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
+                        .contentTransition(.numericText())
                 }
                 StorageBar(fraction: volume.usedFraction, gradient: volume.usageGradient)
                     .frame(height: 5)
@@ -165,6 +191,7 @@ struct LargeWidgetView: View {
                 Text("Хранилище")
                     .font(.system(size: 14, weight: .semibold))
                 Spacer()
+                RefreshButton()
                 Text(entry.date, style: .time)
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
@@ -215,6 +242,7 @@ struct LargeVolumeRow: View {
                     Text("\(Int(volume.usedFraction * 100))%")
                         .font(.system(size: 12, weight: .bold, design: .rounded))
                         .foregroundStyle(volume.usageColor)
+                        .contentTransition(.numericText())
                 }
                 StorageBar(fraction: volume.usedFraction, gradient: volume.usageGradient)
                     .frame(height: 6)
@@ -222,6 +250,7 @@ struct LargeVolumeRow: View {
                     Text("\(volume.freeFormatted) свободно")
                         .font(.system(size: 10))
                         .foregroundStyle(.primary.opacity(0.7))
+                        .contentTransition(.numericText())
                     Spacer()
                     Text("из \(volume.totalFormatted)")
                         .font(.system(size: 10))
@@ -251,7 +280,7 @@ struct StorageBar: View {
     }
 }
 
-// MARK: - Widget Configuration
+// MARK: - Widget Configuration (новый kind чтобы не конфликтовать с кешем)
 
 struct StorageWidget: Widget {
     let kind: String = "StorageWidget"

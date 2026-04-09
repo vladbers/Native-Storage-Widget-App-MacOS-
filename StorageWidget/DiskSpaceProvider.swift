@@ -49,6 +49,27 @@ struct VolumeInfo: Identifiable {
     }
 }
 
+// MARK: - Shared Settings
+
+struct WidgetSettings {
+    private static let hiddenKey = "hiddenVolumes"
+
+    /// Общий UserDefaults через suite name — cfprefsd обеспечивает доступ между процессами
+    private static var sharedDefaults: UserDefaults {
+        UserDefaults(suiteName: "com.storagewidget.shared") ?? .standard
+    }
+
+    static func hiddenVolumeIDs() -> Set<String> {
+        let arr = sharedDefaults.stringArray(forKey: hiddenKey) ?? []
+        return Set(arr)
+    }
+
+    static func setHidden(_ ids: Set<String>) {
+        sharedDefaults.set(Array(ids), forKey: hiddenKey)
+        sharedDefaults.synchronize()
+    }
+}
+
 struct DiskSpaceProvider {
     static func getVolumes() -> [VolumeInfo] {
         let fileManager = FileManager.default
@@ -114,5 +135,11 @@ struct DiskSpaceProvider {
         }
 
         return volumes
+    }
+
+    static func getVisibleVolumes() -> [VolumeInfo] {
+        let hidden = WidgetSettings.hiddenVolumeIDs()
+        guard !hidden.isEmpty else { return getVolumes() }
+        return getVolumes().filter { !hidden.contains($0.id) }
     }
 }
