@@ -6,6 +6,6 @@ struct StorageWidgetApp: App {
         WindowGroup {
             ContentView()
         }
-        .defaultSize(width: 400, height: 300)
+        .defaultSize(width: 550, height: 300)
     }
 }

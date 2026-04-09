@@ -9,7 +9,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack {
-                Text("Storage Widget")
+                Text("Виджет свободного пространства")
                     .font(.title2)
                     .fontWeight(.bold)
                 Spacer()

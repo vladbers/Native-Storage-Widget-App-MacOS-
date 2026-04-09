@@ -73,14 +73,11 @@ struct SmallWidgetView: View {
             } else {
                 ForEach(Array(entry.volumes.enumerated()), id: \.element.id) { index, volume in
                     SmallVolumeRow(volume: volume)
-                    if index < entry.volumes.count - 1 {
-                        Spacer(minLength: 4)
-                    }
                 }
                 Spacer(minLength: 0)
             }
         }
-        .padding(12)
+        .padding(4)
     }
 }
 
@@ -88,22 +85,18 @@ struct SmallVolumeRow: View {
     let volume: VolumeInfo
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
                 Image(systemName: volume.icon)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(volume.usageGradient)
-                Text(volume.freeFormatted)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .contentTransition(.numericText())
-                Spacer()
                 Text("\(Int(volume.usedFraction * 100))%")
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(volume.usageColor)
             }
             StorageBar(fraction: volume.usedFraction, gradient: volume.usageGradient)
-                .frame(height: 5)
-        }
+                .frame(height: 6)
+        }.padding(.top, 8)
     }
 }
 
@@ -118,7 +111,7 @@ struct MediumWidgetView: View {
                 Image(systemName: "opticaldiscdrive.fill")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.blue.gradient)
-                Text("Хранилище")
+                Text("Ваши диски")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
                 RefreshButton()
@@ -126,7 +119,7 @@ struct MediumWidgetView: View {
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
             }
-            .padding(.bottom, 10)
+            .padding(.bottom, 8)
 
             if entry.volumes.isEmpty {
                 Spacer()
@@ -137,15 +130,11 @@ struct MediumWidgetView: View {
             } else {
                 ForEach(Array(entry.volumes.enumerated()), id: \.element.id) { index, volume in
                     MediumVolumeRow(volume: volume)
-                    if index < entry.volumes.count - 1 {
-                        Divider()
-                            .padding(.vertical, 4)
-                    }
                 }
                 Spacer(minLength: 0)
             }
         }
-        .padding(12)
+        .padding(4)
     }
 }
 
@@ -173,7 +162,7 @@ struct MediumVolumeRow: View {
                 StorageBar(fraction: volume.usedFraction, gradient: volume.usageGradient)
                     .frame(height: 5)
             }
-        }
+        }.padding(.top, 8)
     }
 }
 
